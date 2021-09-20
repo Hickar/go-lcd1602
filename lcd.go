@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/d2r2/go-i2c"
@@ -18,8 +16,8 @@ const (
 	LINE_1 = 0x80
 	LINE_2 = 0xC0
 
-	E_PULSE = time.Duration(time.Microsecond * 50)
-	E_DELAY = time.Duration(time.Microsecond * 50)
+	E_PULSE = time.Microsecond * 50
+	E_DELAY = time.Microsecond * 50
 
 	ENABLE = byte(0b00000100)
 )
@@ -43,39 +41,56 @@ func (l *LCD) Init() {
 	time.Sleep(E_DELAY)
 }
 
-func (l *LCD) WriteByte(bits byte, mode byte) {
+func (l *LCD) WriteByte(bits, mode byte) error {
 	highBits := mode | (bits & 0xF0) | BACKLIGHT
 	lowBits := mode | ((bits << 4) & 0xF0) | BACKLIGHT
 
-	l.WriteBytes([]byte{highBits})
+	_, err := l.WriteBytes([]byte{highBits})
+	if err != nil {
+		return err
+	}
 	l.ToggleEnable(highBits)
 
-	l.WriteBytes([]byte{lowBits})
+	_, err = l.WriteBytes([]byte{lowBits})
+	if err != nil {
+		return err
+	}
 	l.ToggleEnable(lowBits)
+
+	return nil
 }
 
-func (l *LCD) WriteString(message string, line byte) {
+func (l *LCD) WriteString(message string, line byte) error {
 	message = LeftAlign(message)
 
-	l.WriteByte(line, MODE_CMD)
+	err := l.WriteByte(line, MODE_CMD)
+	if err != nil {
+		return err
+	}
 
 	for i := range message {
-		l.WriteByte(byte(rune(message[i])), MODE_CHR)
+		err = l.WriteByte(byte(rune(message[i])), MODE_CHR)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
-func (l *LCD) ToggleEnable(bits byte) {
+func (l *LCD) ToggleEnable(bits byte) error {
 	time.Sleep(E_DELAY)
-	l.WriteBytes([]byte{bits | ENABLE})
+	_, err := l.WriteBytes([]byte{bits | ENABLE})
+	if err != nil {
+		return err
+	}
+
 	time.Sleep(E_PULSE)
-	l.WriteBytes([]byte{bits & ^ENABLE})
+	_, err = l.WriteBytes([]byte{bits & ^ENABLE})
+	if err != nil {
+		return err
+	}
 	time.Sleep(E_DELAY)
-}
 
-func LeftAlign(str string) string {
-	return fmt.Sprintf("%" + strconv.Itoa(WIDTH) + "v", str)
-}
-
-func RightAlign(str string) string {
-	return fmt.Sprintf("%-" + strconv.Itoa(WIDTH) + "v", str)
+	return nil
 }
