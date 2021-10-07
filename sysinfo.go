@@ -113,7 +113,7 @@ func GetTemperature() float32 {
 
 		if len(fields) > 0 {
 			if strings.Contains(fields[0], "Core") {
-				tempMeasurement, err := strconv.ParseFloat(fields[2], 32)
+				tempMeasurement, err := strconv.ParseFloat(fields[2][:len(fields[2]) - 3], 32)
 				if err != nil {
 					log.Fatal(err)
 				}

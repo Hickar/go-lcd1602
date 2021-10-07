@@ -11,6 +11,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer lcd.Close()
 
 	lcd.Init()
 
@@ -19,16 +20,16 @@ func main() {
 		memUsed, memTotal := GetRAMUsage()
 		ramUsage := fmt.Sprintf("RAM: %.1f/%.1fGb", memUsed, memTotal)
 
-		lcd.WriteString(cpuPercentage, LINE_1)
-		lcd.WriteString(ramUsage, LINE_2)
+		lcd.WriteString(cpuPercentage, LCD_LINE_1)
+		lcd.WriteString(ramUsage, LCD_LINE_2)
 		time.Sleep(time.Second * 5)
 
 		temperature := fmt.Sprintf("Temp: +%.2fC", GetTemperature())
 		storageUsed, storageTotal := GetStorageUsage()
 		storageUsage := fmt.Sprintf("Mem: %d/%dGb", storageUsed, storageTotal)
 
-		lcd.WriteString(temperature, LINE_1)
-		lcd.WriteString(storageUsage, LINE_2)
+		lcd.WriteString(temperature, LCD_LINE_1)
+		lcd.WriteString(storageUsage, LCD_LINE_2)
 		time.Sleep(time.Second * 4)
 	}
 }
